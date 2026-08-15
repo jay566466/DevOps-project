@@ -1,0 +1,20 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Resend Verification{% endblock %}
+{% block auth_title %}Verify Your Email{% endblock %}
+{% block auth_subtitle %}Enter your email to receive a new verification link{% endblock %}
+
+{% block auth_content %}
+<form method="POST" action="{{ url_for('auth.resend_verification') }}" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input type="email" name="email" id="email" class="form-input" placeholder="you@example.com" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block">Resend Verification Email</button>
+</form>
+{% endblock %}
+
+{% block auth_footer %}
+<p>Already verified? <a href="{{ url_for('auth.login') }}" class="auth-link">Sign in</a></p>
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">User Management</h1>
+            <p class="page-subtitle">{{ pagination.total }} total users</p>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="card card-compact">
+        <form method="GET" action="{{ url_for('admin.user_list') }}" class="search-form">
+            <input type="text" name="q" value="{{ search }}" placeholder="Search by name or email…" class="form-input search-input">
+            <button type="submit" class="btn btn-primary">Search</button>
+            {% if search %}<a href="{{ url_for('admin.user_list') }}" class="btn btn-ghost">Clear</a>{% endif %}
+        </form>
+    </div>
+
+    <div class="card">
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Verified</th>
+                        <th>Active</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in pagination.items %}
+                    <tr>
+                        <td class="text-muted">{{ user.id }}</td>
+                        <td>
+                            <div class="table-user">
+                                <div class="table-avatar">{{ user.name[0].upper() }}</div>
+                                {{ user.name }}
+                            </div>
+                        </td>
+                        <td class="text-muted">{{ user.email }}</td>
+                        <td>
+                            <span class="badge-role {% if user.role == 'admin' %}role-admin{% else %}role-user{% endif %}">
+                                {{ user.role | capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-status {% if user.is_verified %}status-active{% else %}status-inactive{% endif %}">
+                                {{ "Yes" if user.is_verified else "No" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge-status {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                {{ "Yes" if user.is_active else "No" }}
+                            </span>
+                        </td>
+                        <td class="text-muted">{{ (user.created_at | ist).strftime('%b %d, %Y') }}</td>
+                        <td>
+                            <div class="action-group">
+                                <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-xs btn-ghost">Edit</a>
+                                <form method="POST" action="{{ url_for('admin.toggle_active', user_id=user.id) }}" class="inline-form">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-xs {% if user.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                                        {{ "Deactivate" if user.is_active else "Activate" }}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="inline-form"
+                                      onsubmit="return confirm('Permanently delete {{ user.email }}? This cannot be undone.')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="empty-state">No users found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('admin.user_list', page=pagination.prev_num, q=search) }}" class="page-btn">← Prev</a>
+            {% endif %}
+            <span class="page-info">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+            {% if pagination.has_next %}
+            <a href="{{ url_for('admin.user_list', page=pagination.next_num, q=search) }}" class="page-btn">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

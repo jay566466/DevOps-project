@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">Manage your account details</p>
+    </div>
+
+    <div class="content-grid">
+        <div class="card profile-card">
+            <div class="profile-avatar-large">{{ current_user.name[0].upper() }}</div>
+            <div class="profile-name">{{ current_user.name }}</div>
+            <div class="profile-email">{{ current_user.email }}</div>
+            <div class="profile-badges">
+                <span class="badge-role {% if current_user.is_admin %}role-admin{% else %}role-user{% endif %}">
+                    {{ current_user.role | capitalize }}
+                </span>
+                <span class="badge-status {% if current_user.is_verified %}status-active{% else %}status-inactive{% endif %}">
+                    {{ "Verified" if current_user.is_verified else "Unverified" }}
+                </span>
+            </div>
+            <div class="profile-stats">
+                <div class="pstat">
+                    <div class="pstat-val">{{ login_count }}</div>
+                    <div class="pstat-label">Total Logins</div>
+                </div>
+                <div class="pstat">
+                    <div class="pstat-val">{{ (current_user.created_at | ist).strftime('%b %Y') }}</div>
+                    <div class="pstat-label">Joined</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Account Details</h2>
+            </div>
+            <dl class="detail-list">
+                <div class="detail-row">
+                    <dt>Full Name</dt>
+                    <dd>{{ current_user.name }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Email Address</dt>
+                    <dd>{{ current_user.email }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Role</dt>
+                    <dd>{{ current_user.role | capitalize }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Account Status</dt>
+                    <dd>{{ "Active" if current_user.is_active else "Inactive" }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Email Verified</dt>
+                    <dd>{{ "Yes" if current_user.is_verified else "No" }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Last Login</dt>
+                    <dd>{{ (current_user.last_login | ist).strftime('%b %d, %Y at %H:%M') ~ ' IST' if current_user.last_login else "—" }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Member Since</dt>
+                    <dd>{{ (current_user.created_at | ist).strftime('%B %d, %Y') }}</dd>
+                </div>
+            </dl>
+            <div class="card-footer">
+                <a href="{{ url_for('auth.change_password') }}" class="btn btn-primary btn-sm">Change Password</a>
+                <a href="{{ url_for('main.dashboard') }}" class="btn btn-ghost btn-sm">Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

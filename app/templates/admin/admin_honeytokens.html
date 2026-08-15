@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Honeytoken Bot Logs{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">🍯 Honeytoken Bot Logs</h1>
+            <p class="page-subtitle">Automated bot attempts caught by honeypot fields</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost">← Dashboard</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid stats-grid-3">
+        <div class="stat-card stat-card-danger">
+            <div class="stat-icon">🤖</div>
+            <div class="stat-info">
+                <div class="stat-label">Total Bot Attempts</div>
+                <div class="stat-value stat-big">{{ total_bots }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🌐</div>
+            <div class="stat-info">
+                <div class="stat-label">Unique IPs</div>
+                <div class="stat-value stat-big">{{ unique_ips }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📍</div>
+            <div class="stat-info">
+                <div class="stat-label">Routes Triggered</div>
+                <div class="stat-value stat-big">
+                    {% for route, count in route_counts %}
+                    <span style="font-size:13px;font-weight:500;">{{ route | capitalize }}: {{ count }}</span>{% if not loop.last %} &nbsp;|&nbsp; {% endif %}
+                    {% else %}
+                    0
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card card-compact">
+        <form method="GET" action="{{ url_for('admin.honeytoken_logs') }}" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+            <div class="form-group" style="margin:0;flex:1;min-width:180px;">
+                <label class="form-label">Filter by IP</label>
+                <input type="text" name="ip" value="{{ ip_filter }}" class="form-input" placeholder="e.g. 192.168.1.1">
+            </div>
+            <div class="form-group" style="margin:0;flex:1;min-width:160px;">
+                <label class="form-label">Filter by Route</label>
+                <select name="route" class="form-input">
+                    <option value="">All routes</option>
+                    <option value="login" {% if route_filter == 'login' %}selected{% endif %}>Login</option>
+                    <option value="register" {% if route_filter == 'register' %}selected{% endif %}>Register</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <a href="{{ url_for('admin.honeytoken_logs') }}" class="btn btn-ghost btn-sm">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bot Logs Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Bot Attempts <span class="text-muted" style="font-size:14px;font-weight:400;">({{ logs.total }} total)</span></h2>
+            {% if total_bots > 0 %}
+            <form method="POST" action="{{ url_for('admin.clear_bot_logs') }}"
+                  onsubmit="return confirm('Clear ALL {{ total_bots }} bot log entries? This cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger btn-sm">🗑 Clear All Logs</button>
+            </form>
+            {% endif %}
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>IP Address</th>
+                        <th>Route</th>
+                        <th>User Agent</th>
+                        <th>Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bot in logs.items %}
+                    <tr class="bot-row">
+                        <td class="text-muted">{{ bot.id }}</td>
+                        <td><code class="ip-code bot-ip">{{ bot.ip_address or "—" }}</code></td>
+                        <td>
+                            <span class="badge-route badge-route-{{ bot.route }}">{{ bot.route | capitalize }}</span>
+                        </td>
+                        <td class="text-muted ua-cell" title="{{ bot.user_agent }}">
+                            {{ (bot.user_agent or "Unknown")[:80] }}{% if bot.user_agent and bot.user_agent|length > 80 %}…{% endif %}
+                        </td>
+                        <td class="text-muted">{{ (bot.attempt_time | ist).strftime('%b %d, %Y %H:%M:%S') }} IST</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin.delete_bot_log', log_id=bot.id) }}"
+                                  onsubmit="return confirm('Delete this entry?');" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn-icon-danger" title="Delete">✕</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            {% if ip_filter or route_filter %}
+                            No bot logs match the current filter.
+                            {% else %}
+                            No bot attempts detected yet — honeytokens are active on login &amp; register.
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if logs.pages > 1 %}
+        <div class="pagination">
+            {% if logs.has_prev %}
+            <a href="{{ url_for('admin.honeytoken_logs', page=logs.prev_num, ip=ip_filter, route=route_filter) }}" class="page-btn">← Prev</a>
+            {% endif %}
+            <span class="page-info">Page {{ logs.page }} of {{ logs.pages }}</span>
+            {% if logs.has_next %}
+            <a href="{{ url_for('admin.honeytoken_logs', page=logs.next_num, ip=ip_filter, route=route_filter) }}" class="page-btn">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Info Box -->
+    <div class="card card-compact honeytoken-info">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:8px;">ℹ️ How Honeytokens Work</h3>
+        <p style="font-size:13px;color:var(--text-3);line-height:1.6;">
+            A hidden <code style="font-family:var(--font-mono);font-size:12px;">honeypot</code> field is embedded invisibly in the login and register forms.
+            Real users never see or fill it. Bots that auto-fill all form fields trigger the honeypot — the attempt is silently
+            logged here and the request is redirected without revealing detection. No CAPTCHA is shown to the bot.
+        </p>
+    </div>
+</div>
+{% endblock %}

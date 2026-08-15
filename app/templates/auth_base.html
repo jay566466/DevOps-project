@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-split">
+
+    <!-- ── LEFT PANEL — branding + feature showcase ── -->
+    <div class="auth-panel-left">
+        <div class="apl-inner">
+
+            <!-- Brand -->
+            <a href="{{ url_for('auth.login') }}" class="apl-brand">
+                <span class="apl-brand-icon">⬡</span>
+                <span class="apl-brand-name">AuthSystem</span>
+            </a>
+
+            <!-- Hero text -->
+            <div class="apl-hero">
+                <h2 class="apl-tagline">Security built<br>for the real world.</h2>
+                <p class="apl-desc">
+                    End-to-end authentication with multi-factor verification,
+                    role-based access control, and enterprise-grade protection.
+                </p>
+            </div>
+
+            <!-- Feature list -->
+            <ul class="apl-features">
+                <li class="apl-feature">
+                    <span class="apl-feat-icon">🔐</span>
+                    <div>
+                        <div class="apl-feat-title">bcrypt Password Hashing</div>
+                        <div class="apl-feat-desc">12-round cost factor, never stored plain-text</div>
+                    </div>
+                </li>
+                <li class="apl-feature">
+                    <span class="apl-feat-icon">📧</span>
+                    <div>
+                        <div class="apl-feat-title">Email OTP Two-Factor Auth</div>
+                        <div class="apl-feat-desc">Time-limited one-time codes on every login</div>
+                    </div>
+                </li>
+                <li class="apl-feature">
+                    <span class="apl-feat-icon">🛡</span>
+                    <div>
+                        <div class="apl-feat-title">CSRF & Rate Protection</div>
+                        <div class="apl-feat-desc">Tokens, image CAPTCHA, and request throttling</div>
+                    </div>
+                </li>
+                <li class="apl-feature">
+                    <span class="apl-feat-icon">👥</span>
+                    <div>
+                        <div class="apl-feat-title">Role-Based Access Control</div>
+                        <div class="apl-feat-desc">User and admin roles with full audit logging</div>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- Animated stat bar -->
+            <div class="apl-stats">
+                <div class="apl-stat">
+                    <div class="apl-stat-val">256-bit</div>
+                    <div class="apl-stat-label">Encryption</div>
+                </div>
+                <div class="apl-stat-div"></div>
+                <div class="apl-stat">
+                    <div class="apl-stat-val">2FA</div>
+                    <div class="apl-stat-label">Every Login</div>
+                </div>
+                <div class="apl-stat-div"></div>
+                <div class="apl-stat">
+                    <div class="apl-stat-val">0ms</div>
+                    <div class="apl-stat-label">Plain Passwords</div>
+                </div>
+            </div>
+
+            <!-- Animated decorative grid -->
+            <div class="apl-grid-deco" aria-hidden="true">
+                {% for i in range(24) %}
+                <div class="apl-dot"></div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── RIGHT PANEL — form ── -->
+    <div class="auth-panel-right">
+        <div class="auth-card">
+            <div class="auth-header">
+                <!-- Mobile-only brand -->
+                <a href="{{ url_for('auth.login') }}" class="auth-brand-mobile">
+                    <span class="brand-icon">⬡</span>
+                    <span class="brand-name">AuthSystem</span>
+                </a>
+                <h1 class="auth-title">{% block auth_title %}{% endblock %}</h1>
+                <p class="auth-subtitle">{% block auth_subtitle %}{% endblock %}</p>
+            </div>
+
+            <div class="auth-body">
+                {% block auth_content %}{% endblock %}
+            </div>
+
+            <div class="auth-footer">
+                {% block auth_footer %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

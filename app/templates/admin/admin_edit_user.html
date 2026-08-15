@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User — {{ user.name }}{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Edit User</h1>
+            <p class="page-subtitle">{{ user.email }}</p>
+        </div>
+        <a href="{{ url_for('admin.user_list') }}" class="btn btn-ghost">← Back</a>
+    </div>
+
+    <div class="content-grid">
+        <div class="card profile-card">
+            <div class="profile-avatar-large">{{ user.name[0].upper() }}</div>
+            <div class="profile-name">{{ user.name }}</div>
+            <div class="profile-email">{{ user.email }}</div>
+            <div class="profile-badges">
+                <span class="badge-role {% if user.role == 'admin' %}role-admin{% else %}role-user{% endif %}">
+                    {{ user.role | capitalize }}
+                </span>
+            </div>
+            <div class="profile-stats">
+                <div class="pstat">
+                    <div class="pstat-val">{{ user.id }}</div>
+                    <div class="pstat-label">User ID</div>
+                </div>
+                <div class="pstat">
+                    <div class="pstat-val">{{ (user.created_at | ist).strftime('%b %Y') }}</div>
+                    <div class="pstat-label">Joined</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Edit Permissions</h2>
+            </div>
+            <form method="POST" action="{{ url_for('admin.edit_user', user_id=user.id) }}" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.role.label(class="form-label") }}
+                    {{ form.role(class="form-input form-select") }}
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        {{ form.is_active() }}
+                        <span class="checkmark"></span>
+                        Account is Active
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <a href="{{ url_for('admin.user_list') }}" class="btn btn-ghost">Cancel</a>
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Welcome back, <strong>{{ current_user.name }}</strong></p>
+        </div>
+        <div class="page-header-actions">
+            {% if current_user.is_admin %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-accent">Admin Panel →</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🔑</div>
+            <div class="stat-info">
+                <div class="stat-label">Account Status</div>
+                <div class="stat-value">
+                    <span class="badge-status {% if current_user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                        {{ "Active" if current_user.is_active else "Inactive" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <div class="stat-label">Email Verified</div>
+                <div class="stat-value">
+                    <span class="badge-status {% if current_user.is_verified %}status-active{% else %}status-inactive{% endif %}">
+                        {{ "Verified" if current_user.is_verified else "Unverified" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👤</div>
+            <div class="stat-info">
+                <div class="stat-label">Role</div>
+                <div class="stat-value">
+                    <span class="badge-role {% if current_user.is_admin %}role-admin{% else %}role-user{% endif %}">
+                        {{ current_user.role | capitalize }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-info">
+                <div class="stat-label">Member Since</div>
+                <div class="stat-value">{{ (current_user.created_at | ist).strftime('%b %d, %Y') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security overview + recent activity -->
+    <div class="content-grid">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Security Overview</h2>
+            </div>
+            <div class="security-list">
+                <div class="security-item">
+                    <span class="security-check {% if current_user.is_verified %}check-ok{% else %}check-warn{% endif %}">
+                        {{ "✓" if current_user.is_verified else "!" }}
+                    </span>
+                    <div>
+                        <div class="security-item-title">Email Verification</div>
+                        <div class="security-item-desc">{{ "Your email is verified." if current_user.is_verified else "Please verify your email." }}</div>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <span class="security-check check-ok">✓</span>
+                    <div>
+                        <div class="security-item-title">Two-Factor Authentication</div>
+                        <div class="security-item-desc">Email-based OTP is enabled on every login.</div>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <span class="security-check check-ok">✓</span>
+                    <div>
+                        <div class="security-item-title">Password</div>
+                        <div class="security-item-desc">Password is securely hashed with bcrypt.</div>
+                    </div>
+                </div>
+                <div class="security-item">
+                    <span class="security-check check-ok">✓</span>
+                    <div>
+                        <div class="security-item-title">CSRF Protection</div>
+                        <div class="security-item-desc">All forms are CSRF-protected.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('auth.change_password') }}" class="btn btn-ghost btn-sm">Change Password</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Login Activity</h2>
+            </div>
+            {% if recent_logs %}
+            <div class="activity-list">
+                {% for log in recent_logs %}
+                <div class="activity-item">
+                    <span class="activity-status {% if log.status == 'success' %}status-success{% else %}status-failed{% endif %}">
+                        {{ "✓" if log.status == "success" else "✕" }}
+                    </span>
+                    <div class="activity-info">
+                        <div class="activity-time">{{ (log.login_time | ist).strftime('%b %d, %Y at %H:%M') }} IST</div>
+                        <div class="activity-meta">{{ log.ip_address or "Unknown IP" }} • {{ log.status | capitalize }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">No login activity yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

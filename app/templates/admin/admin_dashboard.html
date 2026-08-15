@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Admin Panel</h1>
+            <p class="page-subtitle">System overview and user management</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{{ url_for('admin.user_list') }}" class="btn btn-primary btn-sm">Manage Users</a>
+            <a href="{{ url_for('admin.honeytoken_logs') }}" class="btn btn-danger btn-sm">🍯 Honeytokens</a>
+            <a href="{{ url_for('admin.logs') }}" class="btn btn-ghost btn-sm">View Logs</a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid stats-grid-5">
+        <div class="stat-card stat-card-accent">
+            <div class="stat-icon">👥</div>
+            <div class="stat-info">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value stat-big">{{ total_users }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <div class="stat-label">Verified</div>
+                <div class="stat-value stat-big">{{ verified_users }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div class="stat-info">
+                <div class="stat-label">Active</div>
+                <div class="stat-value stat-big">{{ active_users }}</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🛡</div>
+            <div class="stat-info">
+                <div class="stat-label">Admins</div>
+                <div class="stat-value stat-big">{{ admin_count }}</div>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.honeytoken_logs') }}" class="stat-card stat-card-danger" style="text-decoration:none;">
+            <div class="stat-icon">🍯</div>
+            <div class="stat-info">
+                <div class="stat-label">Bots Caught</div>
+                <div class="stat-value stat-big">{{ bot_count }}</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="content-grid">
+        <!-- Recent Users -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Users</h2>
+                <a href="{{ url_for('admin.user_list') }}" class="card-link">View all →</a>
+            </div>
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users[:10] %}
+                        <tr>
+                            <td>
+                                <div class="table-user">
+                                    <div class="table-avatar">{{ user.name[0].upper() }}</div>
+                                    {{ user.name }}
+                                </div>
+                            </td>
+                            <td class="text-muted">{{ user.email }}</td>
+                            <td>
+                                <span class="badge-role {% if user.role == 'admin' %}role-admin{% else %}role-user{% endif %}">
+                                    {{ user.role | capitalize }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge-status {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+                                    {{ "Active" if user.is_active else "Inactive" }}
+                                </span>
+                            </td>
+                            <td class="text-muted">{{ (user.created_at | ist).strftime('%b %d, %Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Login Activity -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Login Activity</h2>
+                <a href="{{ url_for('admin.logs') }}" class="card-link">View all →</a>
+            </div>
+            <div class="activity-list">
+                {% for log in recent_logs %}
+                <div class="activity-item">
+                    <span class="activity-status {% if log.status == 'success' %}status-success{% else %}status-failed{% endif %}">
+                        {{ "✓" if log.status == "success" else "✕" }}
+                    </span>
+                    <div class="activity-info">
+                        <div class="activity-time">{{ log.user.email if log.user else "Deleted User" }}</div>
+                        <div class="activity-meta">{{ (log.login_time | ist).strftime('%b %d at %H:%M') }} IST • {{ log.ip_address or "Unknown" }} • {{ log.status | capitalize }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Honeytoken Bot Activity -->
+    <div class="card card-honeytoken">
+        <div class="card-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">🍯</span>
+                <h2 class="card-title">Honeytoken — Recent Bot Detections</h2>
+            </div>
+            <a href="{{ url_for('admin.honeytoken_logs') }}" class="card-link">View all →</a>
+        </div>
+        {% if recent_bot_logs %}
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>IP Address</th>
+                        <th>Route Triggered</th>
+                        <th>User Agent</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for bot in recent_bot_logs %}
+                    <tr class="bot-row">
+                        <td><code class="ip-code bot-ip">{{ bot.ip_address or "—" }}</code></td>
+                        <td>
+                            <span class="badge-route">{{ bot.route | capitalize }}</span>
+                        </td>
+                        <td class="text-muted ua-cell" title="{{ bot.user_agent }}">
+                            {{ (bot.user_agent or "")[:70] }}{% if bot.user_agent and bot.user_agent|length > 70 %}…{% endif %}
+                        </td>
+                        <td class="text-muted">{{ (bot.attempt_time | ist).strftime('%b %d at %H:%M') }} IST</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-honeytoken">
+            <div class="empty-icon">🤖</div>
+            <p>No bot attempts detected yet. Honeytokens are active on login &amp; register forms.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Login Logs{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="page-header">
+        <div>
+            <h1 class="page-title">Login Activity Logs</h1>
+            <p class="page-subtitle">All authentication events across the system</p>
+        </div>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost">← Dashboard</a>
+    </div>
+
+    <div class="card">
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Time</th>
+                        <th>IP Address</th>
+                        <th>Status</th>
+                        <th>User Agent</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs.items %}
+                    <tr>
+                        <td class="text-muted">{{ log.id }}</td>
+                        <td>{{ log.user.email if log.user else "Deleted User" }}</td>
+                        <td class="text-muted">{{ (log.login_time | ist).strftime('%b %d, %Y %H:%M:%S') }} IST</td>
+                        <td><code class="ip-code">{{ log.ip_address or "—" }}</code></td>
+                        <td>
+                            <span class="badge-status {% if log.status == 'success' %}status-active{% else %}status-inactive{% endif %}">
+                                {{ log.status | capitalize }}
+                            </span>
+                        </td>
+                        <td class="text-muted ua-cell" title="{{ log.user_agent }}">
+                            {{ (log.user_agent or "")[:60] }}{% if log.user_agent and log.user_agent|length > 60 %}…{% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="empty-state">No logs found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if logs.pages > 1 %}
+        <div class="pagination">
+            {% if logs.has_prev %}
+            <a href="{{ url_for('admin.logs', page=logs.prev_num) }}" class="page-btn">← Prev</a>
+            {% endif %}
+            <span class="page-info">Page {{ logs.page }} of {{ logs.pages }}</span>
+            {% if logs.has_next %}
+            <a href="{{ url_for('admin.logs', page=logs.next_num) }}" class="page-btn">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

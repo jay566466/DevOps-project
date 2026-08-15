@@ -1,0 +1,87 @@
+{% extends "auth_base.html" %}
+
+{% block title %}Sign In{% endblock %}
+{% block auth_title %}Welcome Back{% endblock %}
+{% block auth_subtitle %}Sign in to your secure account{% endblock %}
+
+{% block auth_content %}
+<form method="POST" action="{{ url_for('auth.login') }}" novalidate id="login-form">
+    {{ form.hidden_tag() }}
+    {# Honeytoken: invisible to real users; bots fill it and get blocked #}
+    <input type="text" name="honeypot" value="" autocomplete="off"
+           style="display:none !important; visibility:hidden; position:absolute; left:-9999px;"
+           tabindex="-1" aria-hidden="true">
+
+
+    <div class="form-group">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-input" + (" input-error" if form.email.errors else "")) }}
+        {% for error in form.email.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="form-group">
+        {{ form.password.label(class="form-label") }}
+        <div class="input-with-toggle">
+            {{ form.password(class="form-input" + (" input-error" if form.password.errors else ""), id="password") }}
+            <button type="button" class="toggle-pw" data-target="password" aria-label="Toggle password">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </div>
+        {% for error in form.password.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <!-- Visual Grid CAPTCHA -->
+    <div class="form-group captcha-section">
+        <div class="captcha-header">
+            <span class="captcha-label">Security Check</span>
+            <button type="button" class="captcha-refresh-btn" id="refresh-captcha">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <polyline points="1 20 1 14 7 14"/>
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                </svg>
+                New images
+            </button>
+        </div>
+        <p class="captcha-prompt" id="captcha-prompt">Loading…</p>
+        <div id="captcha-grid"></div>
+        <div class="captcha-footer">
+            <span class="captcha-status" id="captcha-status">Click to select matching images</span>
+        </div>
+        {{ form.captcha(id="captcha-hidden") }}
+        {% for error in form.captcha.errors %}
+        <span class="field-error">{{ error }}</span>
+        {% endfor %}
+    </div>
+
+    <div class="form-row">
+        <label class="checkbox-label">
+            {{ form.remember_me() }}
+            <span class="checkmark"></span>
+            Remember me
+        </label>
+        <a href="{{ url_for('auth.forgot_password') }}" class="auth-link small">Forgot password?</a>
+    </div>
+
+    {{ form.submit(class="btn btn-primary btn-block") }}
+</form>
+
+<div class="auth-divider"><span>Protected by 2FA &amp; Image CAPTCHA</span></div>
+<div class="security-badges">
+    <span class="badge">🔒 Encrypted</span>
+    <span class="badge">📧 2FA OTP</span>
+    <span class="badge">🛡 CSRF Safe</span>
+</div>
+{% endblock %}
+
+{% block auth_footer %}
+<p>No account yet? <a href="{{ url_for('auth.register') }}" class="auth-link">Create one</a></p>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/captcha.js') }}"></script>
+{% endblock %}
