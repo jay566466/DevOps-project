@@ -1,0 +1,8 @@
+services:
+  auth-system:
+    build: .
+    container_name: auth-system-container
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
